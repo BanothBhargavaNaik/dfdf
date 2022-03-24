@@ -15,14 +15,19 @@ public class Product {
 
     private Double unitPrice;
 
+    private String email;
+
+    
+
     public Product() {
     }
 
-    public Product(int id, String productName, String description, Double unitPrice) {
+    public Product(int id, String productName, String description, Double unitPrice, String email) {
         this.id = id;
         this.productName = productName;
         this.description = description;
         this.unitPrice = unitPrice;
+        this.email = email;
     }
 
     public int getId() {
@@ -55,6 +60,14 @@ public class Product {
 
     public void setUnitPrice(Double unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }
