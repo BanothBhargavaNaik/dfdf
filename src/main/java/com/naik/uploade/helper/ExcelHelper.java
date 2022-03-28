@@ -9,13 +9,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.naik.uploade.entity.Product;
+import com.naik.uploade.validation.EmailValidatorSimple;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
+
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -36,20 +37,6 @@ public class ExcelHelper {
             return true;
         } else {
             return false;
-        }
-
-    }
-
-    // Email validation method
-    public static class EmailValidatorSimple {
-
-        private static final String EMAIL_PATTERN = "^(.+)@(\\S+)$";
-
-        private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
-
-        public static boolean isValid(final String email) {
-            Matcher matcher = pattern.matcher(email);
-            return matcher.matches();
         }
 
     }
@@ -93,45 +80,51 @@ public class ExcelHelper {
                     Cell cell = cells.next();
 
                     switch (cid) {
-                        case 0:
-                            if (cell.getNumericCellValue() != 0) {
 
-                                p.setId((int) cell.getNumericCellValue());
-                               
-                            } else {
-                                System.out.println("rowNumber : " + rowNumber + " " + "columnNumber : " + cid);
-                            }
-                            break;
                         case 1:
-                            if (!cell.getStringCellValue().equals(null)) {
+                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
+                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
+                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
+                                        + cell.getColumnIndex());
 
-                                p.setProductName(cell.getStringCellValue());
                             } else {
-                                System.out.println("rowNumber : " + rowNumber + " " + "columnNumber : " + cid);
+                                p.setProductName(cell.getStringCellValue());
+
                             }
+
                             break;
                         case 2:
-                            if (!cell.getStringCellValue().equals(null)) {
+                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
+                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
+                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
+                                        + cell.getColumnIndex());
 
-                                p.setDescription(cell.getStringCellValue());
                             } else {
-                                System.out.println("rowNumber : " + rowNumber + " " + "columnNumber : " + cid);
+
+                                p.setDescription((row.getCell(2).toString()));
                             }
                             break;
                         case 3:
-                            if (cell.getNumericCellValue() != 0) {
-
-                                p.setUnitPrice(cell.getNumericCellValue());
+                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
+                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
+                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
+                                        + cell.getColumnIndex());
                             } else {
-                                System.out.println("rowNumber : " + rowNumber + " " + "columnNumber : " + cid);
+
+                                p.setUnitPrice(Double.parseDouble(row.getCell(3).toString()));
                             }
+
                             break;
                         case 4:
-                            if (EmailValidatorSimple.isValid(cell.getStringCellValue())) {
-                                p.setEmail(cell.getStringCellValue());
-                            } else {
-                                System.out.println("rowNumber : " + rowNumber + " " + "columnNumber : " + cid);
+                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
+                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
+                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
+                                        + cell.getColumnIndex());
+                            } else if (EmailValidatorSimple.isValid((row.getCell(cid)).toString())) {
+
+                                p.setEmail((row.getCell(4).toString()));
                             }
+
                             break;
                         default:
                             break;
@@ -143,7 +136,9 @@ public class ExcelHelper {
                 workbook.close();
 
             }
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             e.printStackTrace();
         }
         return list;
