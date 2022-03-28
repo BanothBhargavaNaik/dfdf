@@ -7,6 +7,7 @@ import com.naik.uploade.entity.Product;
 import com.naik.uploade.repository.ProductRepo;
 import com.naik.uploade.service.ExcelService;
 import com.naik.uploade.helper.ExcelHelper;
+import com.naik.uploade.helper.ValidationExceptions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class ExcelServiceImpl implements ExcelService {
     @Autowired
     private ProductRepo productrepo;
 
-    public void save(MultipartFile file) {
+    public void save(MultipartFile file) throws ValidationExceptions {
 
         try {
             List<Product> product = ExcelHelper.convertExcelToListOfProduct(file.getInputStream());

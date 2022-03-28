@@ -1,24 +1,21 @@
 package com.naik.uploade.helper;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.bind.ValidationException;
+
 import com.naik.uploade.entity.Product;
-import com.naik.uploade.validation.EmailValidatorSimple;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -41,16 +38,29 @@ public class ExcelHelper {
 
     }
 
+    // Email validation method
+    public static class EmailValidatorSimple {
+
+        private static final String EMAIL_PATTERN = "^(.+)@(\\S+)$";
+
+        private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+
+        public static boolean isValid(final String email) {
+            Matcher matcher = pattern.matcher(email);
+            return matcher.matches();
+        }
+
+    }
+
+
+
     // convert excel to list of products
-    public static List<Product> convertExcelToListOfProduct(InputStream is) {
+    public static List<Product> convertExcelToListOfProduct(InputStream is) throws ValidationExceptions, IOException {
         List<Product> list = new ArrayList<>();
 
         try {
-
             XSSFWorkbook workbook = new XSSFWorkbook(is);
-
             XSSFSheet sheet = workbook.getSheet("data");
-
             int rowNumber = 0;
             Iterator<Row> iterator = sheet.iterator();
 
@@ -58,6 +68,7 @@ public class ExcelHelper {
                 Row row = iterator.next();
 
                 // validating excel header file
+
                 if (rowNumber == 0) {
                     if (row.getCell(0).toString().equals("id") && row.getCell(1).toString().equals("productName")
                             && row.getCell(2).toString().equals("description")
@@ -65,66 +76,36 @@ public class ExcelHelper {
                             && row.getCell(4).toString().equals("email")) {
                         rowNumber++;
                         continue;
-                    } else {
-                        break;
-                    }
-                }
+                    } 
+            } else{
+                throw new ValidationException("Header cell is not matched.");
+            }
 
                 Iterator<Cell> cells = row.iterator();
-
                 int cid = 0;
-
                 Product p = new Product();
 
                 while (cells.hasNext()) {
                     Cell cell = cells.next();
+                    
 
                     switch (cid) {
 
                         case 1:
-                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
-                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
-                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
-                                        + cell.getColumnIndex());
-
-                            } else {
-                                p.setProductName(cell.getStringCellValue());
-
-                            }
-
+                            p.setProductName(row.getCell(cid).toString());
                             break;
+
                         case 2:
-                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
-                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
-                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
-                                        + cell.getColumnIndex());
-
-                            } else {
-
-                                p.setDescription((row.getCell(2).toString()));
-                            }
+                            p.setDescription(row.getCell(cid).toString());
                             break;
+
                         case 3:
-                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
-                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
-                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
-                                        + cell.getColumnIndex());
-                            } else {
-
-                                p.setUnitPrice(Double.parseDouble(row.getCell(3).toString()));
-                            }
-
+                            p.setUnitPrice(Double.parseDouble(row.getCell(cid).toString()));
                             break;
+
                         case 4:
-                            if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
-                                    row.getCell(cid).getCellType() == CellType.BLANK)))) {
-                                System.out.println("rowNumber : " + cell.getRowIndex() + " " + "columnNumber : "
-                                        + cell.getColumnIndex());
-                            } else if (EmailValidatorSimple.isValid((row.getCell(cid)).toString())) {
-
-                                p.setEmail((row.getCell(4).toString()));
-                            }
-
+                            if (EmailValidatorSimple.isValid(row.getCell(cid).toString()))
+                                p.setEmail(row.getCell(cid).toString());
                             break;
                         default:
                             break;
@@ -132,52 +113,22 @@ public class ExcelHelper {
                     cid++;
                 }
                 list.add(p);
-
                 workbook.close();
-
             }
-        } catch (
+        } catch (ValidationException e1) {
+            try {
+                throw new ValidationException("Header cell is not matched.");
+            } catch (Exception e) {
+                
+                e1.printStackTrace();
+            }
 
-        Exception e) {
-            e.printStackTrace();
         }
         return list;
-
     }
 
-    // convert excel to list of products error sheet
-    public void excelErrorSheet(String excelpath, String sheetName, int rowNumber, int columnNumber, String data) {
-
-        try {
-            File file = new File(excelpath);
-
-            FileInputStream fis = new FileInputStream(file);
-
-            XSSFWorkbook wb = new XSSFWorkbook(fis);
-
-            XSSFSheet sheet = wb.getSheet(sheetName);
-
-            XSSFRow rowstart = sheet.getRow(0);
-
-            XSSFCell celstart = rowstart.getCell(0);
-
-            celstart.setCellValue("Issue Raised");
-
-            XSSFRow row = sheet.getRow(rowNumber);
-
-            XSSFCell cel = row.getCell(columnNumber);
-
-            cel.setCellValue(data);
-
-            FileOutputStream fio = new FileOutputStream(file);
-            wb.write(fio);
-            wb.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 }
+
+
+// if (row == null || (((row.getCell(cid) == null || row.getCell(cid).toString().equals("") ||
+//                                     row.getCell(cid).getCellType() == CellType.BLANK)))) 
